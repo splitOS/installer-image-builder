@@ -6,3 +6,9 @@ bool doesLocalKernelExist() {
     if (std::filesystem::exists(kernelPath) && std::filesystem::is_regular_file(kernelPath))
         return true; else return false;
 }
+
+bool doesELFBinaryExist(std::string fileName) {
+    std::filesystem::path fullPath = std::filesystem::current_path() / fileName;
+    if (std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath))
+        return true; else return false;
+}
