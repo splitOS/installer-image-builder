@@ -4,10 +4,12 @@
 ![Current Version Badge](https://img.shields.io/badge/current_version-v0.1.0-blue)
 
 ## Roadmap
-### v0.2.0
-- Downloading pre-compiled kernel image or specifying alternate path if local image not found
+
+### v0.1.0 (CURRENT)
+- Images will fully comply with FHS
 
 ### Planned soon
-- Local kernel binary checking: ensure kernel is actually a (b)zImage
+- File type checking in does*Exist() API functions
 - Command-line arguments
 - Dynamic current version badge
+- Downloading pre-compiled kernel image or specifying alternate path if local image not found
