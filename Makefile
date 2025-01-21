@@ -1,10 +1,27 @@
+# Run the build target as a default
 .PHONY: build
 
+# Utilities
+compiler := g++
+compilerOutFlag := -o
+
+# Directories
+sourceDirectory := src
+objectsDirectory := dist
+
+# Sources and objects
+sources = $(sourceDirectory)/main.cpp $(sourceDirectory)/lib/api.cpp
+mainObject = $(objectsDirectory)/splitos-iib
+
+# Builds the program
 build:
-	g++ src/main.cpp -o dist/splitos-iib
+	mkdir -p $(objectsDirectory)
+	$(compiler) $(sources) $(compilerOutFlag) $(mainObject)
 
+# Cleans the objects directory
 clean:
-	rm -rf dist/*
+	rm -rf $(objectsDirectory)/*
 
+# Test-runs the program
 test:
-	dist/splitos-iib
+	$(mainObject)
