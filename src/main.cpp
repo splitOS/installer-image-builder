@@ -22,7 +22,7 @@ int main() {
         std::cout << "Local kernel binary found. Using.";
     } else {
         std::cerr << "A kernel binary in the current working directory was not found.\n";
-        return 1; // TODO: Instead, download a kernel or specify a different path
+        return 1;
     }
 
     // Create the ISO root filesystem
