@@ -1,5 +1,6 @@
 #include <iostream>
 #include <filesystem>
+#include <vector>
 #include <unistd.h>
 #include "lib/api.hpp"
 
@@ -19,21 +20,35 @@ int main() {
     // Check to see if a kernel binary bzImage is found in the current working dir 
     if (doesLocalKernelExist()) {
         localKernel = true;
-        std::cout << "Local kernel binary found. Using.";
+        std::cout << "Local kernel binary found. Using.\n";
     } else {
         std::cerr << "A kernel binary in the current working directory was not found.\n";
         return 1;
     }
 
-    // Create the ISO root filesystem
-    std::cout << "Creating ISO root filesystem...\n";
-    std::filesystem::path isoRootPath = "/tmp/splitos-iib-isoroot";
+    // Create the work directory
+    std::cout << "Creating work directory...\n";
+    std::filesystem::path workDirPath = "/tmp/splitos-iib-workdir";
 
-    if (std::filesystem::exists(isoRootPath)) {
-        std::cout << "DEBUG: Path exists";
-        if (std::filesystem::is_directory(isoRootPath)) std::filesystem::remove_all(isoRootPath);
-        else std::filesystem::remove(isoRootPath);
-    } else std::cout << "DEBUG: Path does not exist";
+    if (std::filesystem::exists(workDirPath)) {
+        if (std::filesystem::is_directory(workDirPath)) std::filesystem::remove_all(workDirPath);
+        else std::filesystem::remove(workDirPath);
+    }
 
-    std::filesystem::create_directory(isoRootPath);
+    std::filesystem::create_directory(workDirPath);
+
+    std::cout << "Creating filesystem hierarchy...\n";
+
+    // Define all FHS directories the ISO needs
+    const std::vector<std::filesystem::path> directories = {
+        "bin", "boot", "dev", "etc", "usr",
+        "lib", "lib64", "media", "mnt", "run",
+        "sbin", "tmp", "proc", "sys", "dev"
+    };
+
+    // Create the directories
+    for (int i = 0; i < directories.size(); i++) {
+        const std::filesystem::path directory = workDirPath / directories[i];
+        std::filesystem::create_directory(directory);
+    }
 }
