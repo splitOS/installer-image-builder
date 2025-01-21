@@ -10,3 +10,4 @@
 ### Planned soon
 - Local kernel binary checking: ensure kernel is actually a (b)zImage
 - Command-line arguments
+- Dynamic current version badge
