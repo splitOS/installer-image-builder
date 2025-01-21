@@ -1,13 +1,22 @@
 #include <iostream>
 #include <filesystem>
+#include <unistd.h>
 #include "lib/api.hpp"
 
 int main() {
-    std::cout << "--== splitOS installer image builder ==--\n";
+    // Abort program if user isn't root/UID 0
+    if (getuid() != 0) {
+        std::cerr << "Please run this program as root.\n";
+        return 2;
+    }
 
+    // Splash text
+    std::cout << "--== splitOS installer image builder ==--\n";
+    
+    // If there is a local kernel found.
     bool localKernel = false;
 
-    // TODO: implement file type checking so bzImage can't be just a normal text file
+    // Check to see if a kernel binary bzImage is found in the current working dir 
     if (doesLocalKernelExist()) {
         localKernel = true;
         std::cout << "Local kernel binary found. Using.";
@@ -16,8 +25,8 @@ int main() {
         return 1; // TODO: Instead, download a kernel or specify a different path
     }
 
-    std::cout << "Creating ISO root...\n";
-
+    // Create the ISO root filesystem
+    std::cout << "Creating ISO root filesystem...\n";
     std::filesystem::path isoRootPath = "/tmp/splitos-iib-isoroot";
 
     if (std::filesystem::exists(isoRootPath)) {
