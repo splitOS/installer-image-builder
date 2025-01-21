@@ -7,7 +7,7 @@ compilerOutFlag := -o
 
 # Directories
 sourceDirectory := src
-objectsDirectory := dist
+objectsDirectory := obj
 
 # Sources and objects
 sources = $(sourceDirectory)/main.cpp $(sourceDirectory)/lib/api.cpp
@@ -20,7 +20,7 @@ build:
 
 # Cleans the objects directory
 clean:
-	rm -rf $(objectsDirectory)/*
+	rm -rf $(objectsDirectory)
 
 # Test-runs the program
 test:
