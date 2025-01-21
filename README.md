@@ -5,9 +5,6 @@
 
 ## Roadmap
 
-### v0.1.0 (CURRENT)
-- Images will fully comply with FHS
-
 ### Planned soon
 - File type checking in does*Exist() API functions
 - Command-line arguments
