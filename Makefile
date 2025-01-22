@@ -18,7 +18,7 @@ build:
 	mkdir -p $(objectsDirectory)
 	$(compiler) $(sources) $(compilerOutFlag) $(mainObject)
 
-# Cleans the objects directory
+# Deletes the objects directory
 clean:
 	rm -rf $(objectsDirectory)
 
