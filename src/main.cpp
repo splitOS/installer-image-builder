@@ -51,4 +51,8 @@ int main() {
         const std::filesystem::path directory = workDirPath / directories[i];
         std::filesystem::create_directory(directory);
     }
+
+    // Copy the kernel to the work dir
+    std::cout << "Copying kernel...\n";
+    std::filesystem::copy_file(std::filesystem::current_path() / "bzImage", workDirPath / "bzImage");
 }
