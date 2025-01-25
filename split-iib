@@ -1,0 +1,9 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+my $version = "v0.1.0";
+
+print "splitOS installer image builder " . $version;
+
+if (-e "./bzImage" )
