@@ -4,6 +4,17 @@
 use warnings;
 use strict;
 my $version = "v0.1.0";
+my $downloaderProgram;
+
+# Check if dependencies exist
+system("command -v grub-install > /dev/null 2>&1") == 0 or die "Could not find \"grub-install\" command. Aborted";
+if (system("command -v curl > /dev/null 2>&1") == 0) {
+    $downloaderProgram = "curl";
+} elsif (system("command -v wget > /dev/null 2>&1") == 0) {
+    $downloaderProgram = "wget";
+} else {
+    die "Could not find \"curl\" nor \"wget\" command. Aborted";
+}
 
 # Splash text
 print "splitOS installer image builder " . $version . "\n";
@@ -34,3 +45,7 @@ if ($magicNumber eq "HdrS") {
 } else {
     die "Kernel validity check failed. Aborted";
 }
+
+# Download BusyBox
+print "Downloading BusyBox...\n";
+system "curl "
