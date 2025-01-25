@@ -1,9 +1,32 @@
 #!/usr/bin/env perl
 
+# Enable strict interpretation and define metadata
 use warnings;
 use strict;
 my $version = "v0.1.0";
 
-print "splitOS installer image builder " . $version;
+# Splash text
+print "splitOS installer image builder " . $version . "\n";
 
-if (-e "./bzImage" )
+# Check if a kernel image exists
+my $kernel = "./bzImage";
+if (-e $kernel) {
+    print "Local kernel image located in current directory! Using.\n";
+} else {
+    die "Could not find a local kernel image. Terminated";
+}
+
+# Open the kernel image for an integrity check
+open(my $fh, '<', $kernel) or die "Could not open kernel image for integrity check. Terminated";
+
+# Read the magic number of the kernel and close the file handle
+my $magicNumber;
+read($fh, $magicNumber, 4);
+close($fh);
+
+# Check if the magic number is correct
+if ($magicNumber eq "\x01\x02\x03\x04") {
+    print "Kernel validity check passed!\n";
+} else {
+    die "Kernel validity check failed. Terminated";
+}
