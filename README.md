@@ -6,8 +6,6 @@
 ## Dependencies
 - GRUB
 - cURL or wget
-- Kernel building dependencies
-- Recommended: build-essential (Ubuntu/Debian)
 
 ## Roadmap
 
