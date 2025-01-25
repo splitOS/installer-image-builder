@@ -4,7 +4,16 @@
 #include <unistd.h>
 #include "lib/api.hpp"
 
+/* Program entrypoint.
+ * Return codes:
+ * 0 - OK.
+ * 1 - General error.
+ * 2 - Insufficient privileges.
+ */
 int main() {
+    // Result variable.
+    int res = 0;
+
     // Abort program if user isn't root/UID 0
     if (getuid() != 0) {
         std::cerr << "Please run this program as root.\n";
@@ -43,7 +52,7 @@ int main() {
     const std::vector<std::filesystem::path> directories = {
         "bin", "boot", "dev", "etc", "usr",
         "lib", "lib64", "media", "mnt", "run",
-        "sbin", "tmp", "proc", "sys", "dev"
+        "sbin", "tmp", "proc", "sys"
     };
 
     // Create the directories
