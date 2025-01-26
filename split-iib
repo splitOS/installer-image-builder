@@ -1,8 +1,10 @@
 #!/usr/bin/env perl
 
-# Enable strict interpretation and define metadata
+# Enable strict interpretation, enable libraries, and define metadata
 use warnings;
 use strict;
+use File::Path qw(remove_tree);
+use File::Copy qw(copy);
 my $version = "v0.1.0";
 my $downloaderProgram;
 
@@ -31,13 +33,13 @@ if (-e "./bzImage") {
 print "Local kernel image located in current directory! Using.\n";
 
 # Open the kernel image for an integrity check
-open my $fh, '<', $kernel or die "Could not open kernel image for integrity check. Aborted";
+open my $kernelHandle, '<', $kernel or die "Could not open kernel image for integrity check. Aborted";
 
 # Read the magic number of the kernel and close the file handle
 my $magicNumber;
-seek $fh, 514, 0 or die "Could not seek to magic number. Aborted";
-read $fh, $magicNumber, 4 or die "Could not read magic number. Aborted";
-close $fh;
+seek $kernelHandle, 514, 0 or die "Could not seek to magic number. Aborted";
+read $kernelHandle, $magicNumber, 4 or die "Could not read magic number. Aborted";
+close $kernelHandle;
 
 # Check if the magic number is correct
 if ($magicNumber eq "HdrS") {
@@ -46,6 +48,44 @@ if ($magicNumber eq "HdrS") {
     die "Kernel validity check failed. Aborted";
 }
 
-# Download BusyBox
+# Purge old directory if existing and create a work directory in its place
+my $workDirectory = "/tmp/splitos-iib";
+my $isoRoot = "$workDirectory/isoroot";
+if (-d $workDirectory) {
+    remove_tree($workDirectory) or die "Could not remove old work directory ($!). Aborted";
+} elsif (-f $workDirectory) {
+    unlink $workDirectory or die "Could not remove conflicting file for creating work directory ($!). Aborted"
+} else {
+    mkdir $workDirectory, 01755 or die "Could not create work directory in /tmp ($!). Aborted";
+    mkdir $isoRoot, 01755 or die "Could not create ISO root in work directory ($!). Aborted";
+}
+
+# Download BusyBox or use cached version
+my $busyBoxVersion = "busybox-1.37.0";
 print "Downloading BusyBox...\n";
-system "curl "
+system(
+    "$downloaderProgram https://busybox.net/downloads/$busyBoxVersion.tar.bz2 -o" . 
+    "$workDirectory/$busyBoxVersion.tar.bz2") == 0
+    or die "Could not download BusyBox ($!). Aborted";
+
+# Extract contents of BusyBox archive
+print "Extracting BusyBox source archive...\n";
+mkdir "$workDirectory/$busyBoxVersion", 01755
+    or die "Could not create BusyBox extracted files directory in work directory ($!). Aborted";
+system("tar xaf $workDirectory/$busyBoxVersion.tar.bz2 -C $workDirectory") == 0
+    or die "Could not extract BusyBox archive ($!). Aborted";
+
+# Configure BusyBox
+print "Configuring BusyBox...\n";
+my $oldBusyBoxConfig = "$workDirectory/$busyBoxVersion/.config";
+
+if (-e $oldBusyBoxConfig) {
+    unlink $oldBusyBoxConfig or die "Could not delete old BusyBox config ($!). Aborted";
+}
+
+if (-e "./busybox-config") {
+    copy("./busybox-config", "$workDirectory/$busyBoxVersion/.config")
+        or die "Could not copy new BusyBox config. Aborted";
+} else {
+    die "Could not find new BusyBox config. Aborted";
+}
