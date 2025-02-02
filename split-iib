@@ -8,84 +8,81 @@ use File::Copy qw(copy);
 my $version = "v0.1.0";
 my $downloaderProgram;
 
+# Define paths
+my $workDirectory = "/tmp/splitos-iib";
+my $cacheDirectory = "/var/cache/splitos-iib";
+my $isoRoot = "$workDirectory/iso";
+my $initramfsRoot = "$workDirectory/initramfs";
+
 # Check if dependencies exist
-system("command -v grub-install > /dev/null 2>&1") == 0 or die "Could not find \"grub-install\" command. Aborted";
 if (system("command -v curl > /dev/null 2>&1") == 0) {
     $downloaderProgram = "curl";
 } elsif (system("command -v wget > /dev/null 2>&1") == 0) {
     $downloaderProgram = "wget";
 } else {
-    die "Could not find \"curl\" nor \"wget\" command. Aborted";
+    die "Could not find cURL nor wget. Failed";
 }
 
-# Splash text
+if (!system("command -v git > /dev/null 2>&1") == 0) {
+    die "Could not find Git. Failed"
+}
+
+# Check if kernel exists and is valid
+
+sub kernelck {
+    my $kernel;
+
+    # Check if kernel exists
+    if (-e "./bzImage") {
+        $kernel = "./bzImage";
+    } elsif (-e "./zImage") {
+        $kernel = "./zImage";
+    } else {
+        die "Could not find a local kernel image. Failed";
+    }
+    print "Local kernel image located in current directory! Using.\n";
+
+    # Open the kernel image for an integrity check
+    open my $kernelHandle, '<', $kernel or die "Could not open kernel image for integrity check. Failed";
+
+    # Read the magic number of the kernel and close the file handle
+    my $magicNumber;
+    seek $kernelHandle, 514, 0 or die "Could not seek to magic number. Failed";
+    read $kernelHandle, $magicNumber, 4 or die "Could not read magic number. Failed";
+    close $kernelHandle;
+
+    # Check if the magic number is correct
+    if ($magicNumber eq "HdrS") {
+        print "Kernel validity check passed!\n";
+    } else {
+        die "Kernel validity check failed. Failed";
+    }
+}
+
+# Purge old work directory if existing and create a new one
+sub workdir {
+    if (-d $workDirectory) {
+        remove_tree($workDirectory) or die "Could not remove old work directory. Failed";
+    } elsif (-f $workDirectory) {
+        unlink $workDirectory or die "Could not remove conflicting file for creating work directory. Failed"
+    } else {
+        mkdir $workDirectory, 0755 or die "Could not create work directory in /tmp. Failed";
+        mkdir $isoRoot, 0755 or die "Could not create ISO root in work directory. Failed";
+    }
+}
+
+# Create a cache directory if not existing already
+sub cachedir {
+    if (-f $cacheDirectory) {
+        unlink $cacheDirectory or die "Could not remove conflicting file to create cache directory. Failed";
+    } if (! -d $cacheDirectory) {
+        mkdir $cacheDirectory, 0755 or die "Could not create cache directory. Failed";
+    }
+}
+
 print "splitOS installer image builder " . $version . "\n";
 
-# Check if a kernel image exists
-my $kernel;
-if (-e "./bzImage") {
-    $kernel = "./bzImage";
-} elsif (-e "./zImage") {
-    $kernel = "./zImage";
-} else {
-    die "Could not find a local kernel image. Aborted";
-}
-print "Local kernel image located in current directory! Using.\n";
+kernelck;
 
-# Open the kernel image for an integrity check
-open my $kernelHandle, '<', $kernel or die "Could not open kernel image for integrity check. Aborted";
-
-# Read the magic number of the kernel and close the file handle
-my $magicNumber;
-seek $kernelHandle, 514, 0 or die "Could not seek to magic number. Aborted";
-read $kernelHandle, $magicNumber, 4 or die "Could not read magic number. Aborted";
-close $kernelHandle;
-
-# Check if the magic number is correct
-if ($magicNumber eq "HdrS") {
-    print "Kernel validity check passed!\n";
-} else {
-    die "Kernel validity check failed. Aborted";
-}
-
-# Purge old directory if existing and create a work directory in its place
-my $workDirectory = "/tmp/splitos-iib";
-my $isoRoot = "$workDirectory/isoroot";
-if (-d $workDirectory) {
-    remove_tree($workDirectory) or die "Could not remove old work directory ($!). Aborted";
-} elsif (-f $workDirectory) {
-    unlink $workDirectory or die "Could not remove conflicting file for creating work directory ($!). Aborted"
-} else {
-    mkdir $workDirectory, 01755 or die "Could not create work directory in /tmp ($!). Aborted";
-    mkdir $isoRoot, 01755 or die "Could not create ISO root in work directory ($!). Aborted";
-}
-
-# Download BusyBox or use cached version
-my $busyBoxVersion = "busybox-1.37.0";
-print "Downloading BusyBox...\n";
-system(
-    "$downloaderProgram https://busybox.net/downloads/$busyBoxVersion.tar.bz2 -o" . 
-    "$workDirectory/$busyBoxVersion.tar.bz2") == 0
-    or die "Could not download BusyBox ($!). Aborted";
-
-# Extract contents of BusyBox archive
-print "Extracting BusyBox source archive...\n";
-mkdir "$workDirectory/$busyBoxVersion", 01755
-    or die "Could not create BusyBox extracted files directory in work directory ($!). Aborted";
-system("tar xaf $workDirectory/$busyBoxVersion.tar.bz2 -C $workDirectory") == 0
-    or die "Could not extract BusyBox archive ($!). Aborted";
-
-# Configure BusyBox
-print "Configuring BusyBox...\n";
-my $oldBusyBoxConfig = "$workDirectory/$busyBoxVersion/.config";
-
-if (-e $oldBusyBoxConfig) {
-    unlink $oldBusyBoxConfig or die "Could not delete old BusyBox config ($!). Aborted";
-}
-
-if (-e "./busybox-config") {
-    copy("./busybox-config", "$workDirectory/$busyBoxVersion/.config")
-        or die "Could not copy new BusyBox config. Aborted";
-} else {
-    die "Could not find new BusyBox config. Aborted";
-}
+workdir;
+cachedir;
