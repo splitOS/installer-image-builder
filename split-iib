@@ -105,13 +105,17 @@ sub workdir {
 
 # Create a cache directory if not existing already
 sub cachedir {
-    proglog "Creating a cache directory...";
-
     if (-f $cacheDirectory) {
         unlink $cacheDirectory or mdie "Could not remove conflicting file to create cache directory.";
-    } if (! -d $cacheDirectory) {
-        mkdir $cacheDirectory, 0755 or mdie "Could not create cache directory.";
     }
+
+    if (-d $cacheDirectory) {
+        proglog "Existing cache detected!";
+        return;
+    }
+
+    proglog "Creating a cache directory...";
+    mkdir $cacheDirectory, 0755 or mdie "Could not create cache directory.";
 }
 
 # Download components (UNFINISHED)
