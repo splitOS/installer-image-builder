@@ -19,20 +19,20 @@ my $initramfsRoot = "$workDirectory/initramfs";
 # Helper subroutines
 # Print a progress message
 sub proglog {
-    my $message = @_;
+    my ($message) = @_;
     print ":: $message\n";
 }
 
 # Print a follow-up to a proglog
 sub sublog {
-    my $message = @_;
+    my ($message) = @_;
     print "  => $message\n";
 }
 
 # Die with style
 sub mdie {
-    my $message = @_;
-    die "[] $message Failed";
+    my ($message) = @_;
+    die "[X] $message\n";
 }
 
 # Program logic subroutines
@@ -115,7 +115,7 @@ if (!system("command -v git > /dev/null 2>&1") == 0) {
 }
 
 # Splash text
-print ":: splitOS installer image builder $version ::\n";
+print "--== splitOS installer image builder $version ==--\n";
 
 # Execute program logic subroutines
 kernelck;
