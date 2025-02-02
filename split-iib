@@ -3,8 +3,10 @@
 # Enable strict interpretation, enable libraries, and define metadata
 use warnings;
 use strict;
+
 use File::Path qw(remove_tree);
 use File::Copy qw(copy);
+
 my $version = "v0.1.0";
 my $downloaderProgram;
 
@@ -14,24 +16,31 @@ my $cacheDirectory = "/var/cache/splitos-iib";
 my $isoRoot = "$workDirectory/iso";
 my $initramfsRoot = "$workDirectory/initramfs";
 
-# Check if dependencies exist
-if (system("command -v curl > /dev/null 2>&1") == 0) {
-    $downloaderProgram = "curl";
-} elsif (system("command -v wget > /dev/null 2>&1") == 0) {
-    $downloaderProgram = "wget";
-} else {
-    die "Could not find cURL nor wget. Failed";
+# Helper subroutines
+# Print a progress message
+sub proglog {
+    my $message = @_;
+    print ":: $message\n";
 }
 
-if (!system("command -v git > /dev/null 2>&1") == 0) {
-    die "Could not find Git. Failed"
+# Print a follow-up to a proglog
+sub sublog {
+    my $message = @_;
+    print "  => $message\n";
 }
 
+# Die with style
+sub mdie {
+    my $message = @_;
+    die "[] $message Failed";
+}
+
+# Program logic subroutines
 # Check if kernel exists and is valid
 sub kernelck {
     my $kernel;
 
-    print "Attempting to find a local kernel image.\n";
+    proglog "Attempting to find a kernel image in the current directory...";
 
     # Check if kernel exists
     if (-e "./bzImage") {
@@ -39,56 +48,76 @@ sub kernelck {
     } elsif (-e "./zImage") {
         $kernel = "./zImage";
     } else {
-        die "Could not find a kernel image in the current directory. Failed";
+        mdie "Could not find a kernel image in the current directory.";
     }
-    print "Kernel image found!\n";
+    proglog "Kernel image found!";
 
-    print "Checking kernel validity...\n";
+    proglog "Checking kernel validity...";
 
     # Open the kernel image for an integrity check
-    open my $kernelHandle, '<', $kernel or die "Could not open kernel image for integrity check. Failed";
+    open my $kernelHandle, '<', $kernel or mdie "Could not open kernel image for integrity check.";
 
     # Read the magic number of the kernel and close the file handle
     my $magicNumber;
-    seek $kernelHandle, 514, 0 or die "Could not seek to magic number. Failed";
-    read $kernelHandle, $magicNumber, 4 or die "Could not read magic number. Failed";
+    seek $kernelHandle, 514, 0 or mdie "Could not seek to magic number.";
+    read $kernelHandle, $magicNumber, 4 or mdie "Could not read magic number.";
     close $kernelHandle;
 
     # Check if the magic number is correct
     if ($magicNumber eq "HdrS") {
-        print "Kernel validity check passed!\n";
+        sublog "Kernel validity check passed!";
     } else {
-        die "Kernel validity check failed. Failed";
+        mdie "Kernel validity check failed.";
     }
 }
 
 # Purge old work directory if existing and create a new one
 sub workdir {
-    print "Creating a work directory...\n";
+    proglog "Creating a work directory...";
 
     if (-d $workDirectory) {
-        remove_tree($workDirectory) or die "Could not remove old work directory. Failed";
+        remove_tree($workDirectory) or mdie "Could not remove old work directory.";
     } elsif (-f $workDirectory) {
-        unlink $workDirectory or die "Could not remove conflicting file for creating work directory. Failed"
+        unlink $workDirectory or mdie "Could not remove conflicting file for creating work directory."
     } else {
-        mkdir $workDirectory, 0755 or die "Could not create work directory in /tmp. Failed";
-        mkdir $isoRoot, 0755 or die "Could not create ISO root in work directory. Failed";
+        mkdir $workDirectory, 0755 or mdie "Could not create work directory in /tmp.";
+        mkdir $isoRoot, 0755 or mdie "Could not create ISO root in work directory.";
     }
 }
 
 # Create a cache directory if not existing already
 sub cachedir {
-    print "Creating a cache directory...\n";
+    proglog "Creating a cache directory...";
 
     if (-f $cacheDirectory) {
-        unlink $cacheDirectory or die "Could not remove conflicting file to create cache directory. Failed";
+        unlink $cacheDirectory or mdie "Could not remove conflicting file to create cache directory.";
     } if (! -d $cacheDirectory) {
-        mkdir $cacheDirectory, 0755 or die "Could not create cache directory. Failed";
+        mkdir $cacheDirectory, 0755 or mdie "Could not create cache directory.";
     }
 }
 
-print "splitOS installer image builder " . $version . "\n";
+# Download components (UNFINISHED)
+sub synccomp {
+    proglog "Downloading components...";
+}
 
+# Check if dependencies exist
+if (system("command -v curl > /dev/null 2>&1") == 0) {
+    $downloaderProgram = "curl";
+} elsif (system("command -v wget > /dev/null 2>&1") == 0) {
+    $downloaderProgram = "wget";
+} else {
+    mdie "Could not find cURL nor wget.";
+}
+
+if (!system("command -v git > /dev/null 2>&1") == 0) {
+    mdie "Could not find Git."
+}
+
+# Splash text
+print ":: splitOS installer image builder $version ::\n";
+
+# Execute program logic subroutines
 kernelck;
 
 workdir;
