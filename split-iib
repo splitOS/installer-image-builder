@@ -28,9 +28,10 @@ if (!system("command -v git > /dev/null 2>&1") == 0) {
 }
 
 # Check if kernel exists and is valid
-
 sub kernelck {
     my $kernel;
+
+    print "Attempting to find a local kernel image.\n";
 
     # Check if kernel exists
     if (-e "./bzImage") {
@@ -38,9 +39,11 @@ sub kernelck {
     } elsif (-e "./zImage") {
         $kernel = "./zImage";
     } else {
-        die "Could not find a local kernel image. Failed";
+        die "Could not find a kernel image in the current directory. Failed";
     }
-    print "Local kernel image located in current directory! Using.\n";
+    print "Kernel image found!\n";
+
+    print "Checking kernel validity...\n";
 
     # Open the kernel image for an integrity check
     open my $kernelHandle, '<', $kernel or die "Could not open kernel image for integrity check. Failed";
@@ -61,6 +64,8 @@ sub kernelck {
 
 # Purge old work directory if existing and create a new one
 sub workdir {
+    print "Creating a work directory...\n";
+
     if (-d $workDirectory) {
         remove_tree($workDirectory) or die "Could not remove old work directory. Failed";
     } elsif (-f $workDirectory) {
@@ -73,6 +78,8 @@ sub workdir {
 
 # Create a cache directory if not existing already
 sub cachedir {
+    print "Creating a cache directory...\n";
+
     if (-f $cacheDirectory) {
         unlink $cacheDirectory or die "Could not remove conflicting file to create cache directory. Failed";
     } if (! -d $cacheDirectory) {
