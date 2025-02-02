@@ -35,6 +35,24 @@ sub mdie {
     die "[X] $message\n";
 }
 
+# Run a command with stdout and stderr supressed and mdie on failure
+sub run {
+    my ($command, $failureMdieMessage) = @_;
+    system($command . " > /dev/null 2>&1") == 0 or mdie $failureMdieMessage;
+}
+
+# Download a file to the cache directory
+sub sync {
+    my ($url, $outputFileName, $failedToDownloadName) = @_;
+    run "$downloaderProgram $url -o $outputFileName", "Failed to download $failedToDownloadName.";
+}
+
+# Shallow-clone a Git repository to the cache directory
+sub clone {
+    my ($url, $intoDirectory, $failedToCloneName) = @_;
+    run "git clone $url $cacheDirectory/$intoDirectory --depth 1", "Failed to clone code for $failedToCloneName.";
+}
+
 # Program logic subroutines
 # Check if kernel exists and is valid
 sub kernelck {
