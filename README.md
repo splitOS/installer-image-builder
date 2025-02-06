@@ -4,11 +4,7 @@
 ![Current Version Badge](https://img.shields.io/badge/current_version-v0.1.0-blue)
 
 ## Dependencies
-- cURL or wget (for downloading GNU coreutils for the userspace in the initramfs)
-    - Debian, Fedora, & Nixpkgs: `curl` / `wget`
-    - Arch: `core/curl` / `extra/wget`
-    - Gentoo: `net-misc/curl` / `net-misc/wget`
-- Git (for cloning Limine's source code for compiling)
+- Git (for cloning GNU coreutils and Limine source code)
     - Debian, Fedora & Nixpkgs: `git`
     - Arch: `extra/git`
     - Gentoo: `dev-vcs/git`

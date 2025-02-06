@@ -41,12 +41,6 @@ sub run {
     system($command . " > /dev/null 2>&1") == 0 or mdie $failureMdieMessage;
 }
 
-# Download a file to the cache directory
-sub sync {
-    my ($url, $outputFileName, $failedToDownloadName) = @_;
-    run "$downloaderProgram $url -o $outputFileName", "Failed to download $failedToDownloadName.";
-}
-
 # Shallow-clone a Git repository to the cache directory
 sub clone {
     my ($url, $intoDirectory, $failedToCloneName) = @_;
@@ -118,20 +112,20 @@ sub cachedir {
     mkdir $cacheDirectory, 0755 or mdie "Could not create cache directory.";
 }
 
-# Download components (UNFINISHED)
+# Download components' source code (NOT TESTED YET)
 sub synccomp {
-    proglog "Downloading components...";
+    proglog "Downloading components' source code...";
+
+    # Clone GNU coreutils
+    clone("git://git.sv.gnu.org/coreutils.git", "coreutils", "GNU coreutils") unless -d "$cacheDirectory/coreutils";
+
+    # Clone Limine
+    clone("https://github.com/limine-bootloader/limine.git", "limine", "the Limine bootloader")
+        unless -d "$cacheDirectory/limine";
 }
 
 # Check if dependencies exist
-if (system("command -v curl > /dev/null 2>&1") == 0) {
-    $downloaderProgram = "curl";
-} elsif (system("command -v wget > /dev/null 2>&1") == 0) {
-    $downloaderProgram = "wget";
-} else {
-    mdie "Could not find cURL nor wget.";
-}
-
+# Note: these system() calls are left here instead of run() calls because we want to die with a different message
 if (!system("command -v git > /dev/null 2>&1") == 0) {
     mdie "Could not find Git."
 }
@@ -144,3 +138,5 @@ kernelck;
 
 workdir;
 cachedir;
+
+synccomp;
