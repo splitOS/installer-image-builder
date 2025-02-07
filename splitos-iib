@@ -112,7 +112,7 @@ sub cachedir {
     mkdir $cacheDirectory, 0755 or mdie "Could not create cache directory.";
 }
 
-# Download components' source code (NOT TESTED YET)
+# Download components' source code
 sub synccomp {
     proglog "Downloading components' source code...";
 
